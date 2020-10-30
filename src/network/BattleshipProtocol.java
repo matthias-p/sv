@@ -50,7 +50,7 @@ public class BattleshipProtocol {
                 for (int i = 1; i < inputSplitted.length; i++) {
                     shipLengths[i - 1] = Integer.parseInt(inputSplitted[i]);
                 }
-                game.setShipLengths(shipLengths);
+                // game.setShipLengths(shipLengths);
                 break;
 
             case "shot":
@@ -58,7 +58,7 @@ public class BattleshipProtocol {
                 break;
 
             case "answer":
-                //implement function to register hits on enemy Playfield
+                game.getEnemyField().registerShot(new Position(Integer.parseInt(inputSplitted[1]), Integer.parseInt(inputSplitted[2])));
                 break;
 
             case "save":

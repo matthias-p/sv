@@ -1,4 +1,4 @@
-package game;
+package game.cells;
 
 import java.io.Serializable;
 

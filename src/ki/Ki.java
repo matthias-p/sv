@@ -3,67 +3,58 @@ package ki;
 import enums.KiStrength;
 import game.Field;
 import game.Position;
+import game.cells.Shot;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class Ki {
     private Field enemyField;
     private Field kiField;
-    private int[] ships;
-    private int [][] shotmap;  // 0 = not shot yet, 1 = shot
-    private int kiLevel;
-
-    public int randomCount = 0;
+    private KiStrength kiStrength;
 
     public Ki(Field enemyField, Field kiField, int[] shiplengths, KiStrength kiStrength){
         this.enemyField = enemyField;
         this.kiField = kiField;
         this.kiField.addShipRandom(shiplengths);
-        this.ships = shiplengths.clone();
-        this.shotmap = new int[enemyField.getHeight()][enemyField.getLength()];
-        this.initShotMap();
+        this.kiStrength = kiStrength;
+    }
 
-        switch (kiStrength) {
-            case BEGINNER -> this.kiLevel = 0;
-            case INTERMEDIATE -> this.kiLevel = 1;
-            case STRONG -> this.kiLevel = 2;
-            case HELL -> this.kiLevel = 3;
+    public void shoot() {
+        assert this.enemyField.getShipCount() > 0 : "Es gibt keine Schiffe mehr";
+
+        switch (this.kiStrength) {
+            case BEGINNER -> this.shootRandom();
+            case INTERMEDIATE -> this.shootRows();
         }
     }
 
-    private void initShotMap(){
-        for (int[] ints : shotmap) {
-            Arrays.fill(ints, 0);
-        }
-    }
+    private void shootRandom() {
+        Random r = new Random();
 
-    public void shootRandom(){
-        Random random = new Random();
-        int height;
-        int length;
+        while (true) {
+            int height = r.nextInt(this.enemyField.getHeight());
+            int length = r.nextInt(this.enemyField.getLength());
 
-        do {
-            height = random.nextInt(enemyField.getHeight());
-            length = random.nextInt(enemyField.getLength());
-            randomCount++;
-        } while (this.shotmap[height][length] != 0);
-        shotmap[height][length] = 1;
-
-        int hit = enemyField.registerShot(new Position(length, height));
-        // System.out.println(hit);
-    }
-
-    public void shootRows(){
-
-    }
-
-    public void printShotMap(){
-        for (int [] ints: this.shotmap){
-            for(int i: ints){
-                System.out.print(i + "\t");
+            if (!(this.enemyField.getPlayfield()[height][length] instanceof Shot)) {
+                this.enemyField.registerShot(new Position(length, height));
+                break;
             }
-            System.out.println();
+        }
+    }
+
+    private int y = 0;
+    private int x = 0;
+    private void shootRows() {
+        if (y % 2 == 0) {
+            this.enemyField.registerShot(new Position(x, y));
+        }
+        else {
+            this.enemyField.registerShot(new Position(x + 1, y));
+        }
+        x += 2;
+        if (x >= this.enemyField.getLength()) {
+            x = 0;
+            y++;
         }
     }
 }
