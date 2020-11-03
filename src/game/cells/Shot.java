@@ -8,10 +8,18 @@ public class Shot extends Cell{
         this.wasShip = wasShip;
     }
 
+    public Shot() {
+
+    }
+
+    public Shot(boolean wasShip) {
+        this.wasShip = wasShip;
+    }
+
     @Override
     public String toString() {
         if (this.wasShip)
-            return "s";
+            return "ㅅ";
         return "ㅁ";
     }
 }

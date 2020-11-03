@@ -118,6 +118,8 @@ public class Field implements FieldInterface, Serializable {
     public boolean addShip(Ship ship){
         // check if any position of ship is already occupied
         for(Position position: ship.getPositions()){
+            if (this.playfield[position.getY()][position.getX()].getClass() == Shot.class)
+                continue;
             if (this.playfield[position.getY()][position.getX()].getClass() != Cell.class)
                 return false;
         }
@@ -139,7 +141,7 @@ public class Field implements FieldInterface, Serializable {
         int loopcount = 0;
 
         while (!placed){
-            if (loopcount > 5000) {
+            if (loopcount > 7000) {
                 return false;
             }
 
@@ -198,14 +200,35 @@ public class Field implements FieldInterface, Serializable {
         for (int i = 0; i < lengths.length; i++) {
             if (!addShipRandom(lengths[i])) {
                 this.resetField();
-                i = 0;
+                i = -1;
             }
         }
+        assert this.getShipCount() == lengths.length : "Nicht alle Schiffe plaziert";
         return true;
     }
 
     public int getShipCount() {
+        // returns how many ships are on the current field
         return this.extractShips(this.height, this.length).size();
+    }
+
+    public int[] getShipLengths() {
+        // returns the lengths of every ship on the current field as array
+        ArrayList<Ship> extractShips = this.extractShips(this.height, this.length);
+        int[] shipLengths = new int[extractShips.size()];
+        for (int i = 0; i < extractShips.size(); i++) {
+            shipLengths[i] = extractShips.get(i).getLength();
+        }
+
+        for (int i = 0; i < shipLengths.length - 1; i++) {
+            if (shipLengths[i + 1] > shipLengths[i]) {
+                int temp = shipLengths[i + 1];
+                shipLengths[i + 1] = shipLengths[i];
+                shipLengths[i] = temp;
+            }
+        }
+
+        return shipLengths;
     }
 
     public int registerShot(Position position){

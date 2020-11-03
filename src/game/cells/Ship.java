@@ -3,6 +3,8 @@ package game.cells;
 import game.Position;
 import game.cells.Cell;
 
+import java.util.ArrayList;
+
 public class Ship extends Cell {
     private Position[] positions;
     private int length;
@@ -12,6 +14,10 @@ public class Ship extends Cell {
 
     public Position[] getPositions() {
         return positions;
+    }
+
+    public int getLength() {
+        return length;
     }
 
     public int getId() { return this.id; }
@@ -25,9 +31,24 @@ public class Ship extends Cell {
         idCounter++;
     }
 
+    public Ship(ArrayList<Position> positions) {
+        super();
+        this.positions = new Position[positions.size()];
+        for (int i = 0; i < positions.size(); i++) {
+            this.positions[i] = positions.get(i);
+        }
+        this.length = positions.size();
+
+        this.id = idCounter;
+        idCounter++;
+    }
+
     public int shot(){
         this.length--;
-        return this.length;
+        if (this.destroyed())
+            return 2;
+        else
+            return 1;
     }
 
     public boolean destroyed(){

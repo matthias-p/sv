@@ -38,3 +38,5 @@ java/build/**
 
 # Custom Dirs
 sketches/
+resources/
+out/
