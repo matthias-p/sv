@@ -161,7 +161,7 @@ public class Field implements FieldInterface, Serializable {
                     placed = this.addShip(new Ship(positions));
                 }
                 case 's' -> {
-                    if (startPos.getY() + length > this.height - 1) {
+                    if (startPos.getY() + length > this.height) {
                         continue;
                     }
                     positions[0] = startPos;
@@ -181,7 +181,7 @@ public class Field implements FieldInterface, Serializable {
                     placed = this.addShip(new Ship(positions));
                 }
                 case 'e' -> {
-                    if (startPos.getX() + length > this.length - 1) {
+                    if (startPos.getX() + length > this.length) {
                         continue;
                     }
                     positions[0] = startPos;
@@ -199,6 +199,7 @@ public class Field implements FieldInterface, Serializable {
     public boolean addShipRandom(int [] lengths){
         for (int i = 0; i < lengths.length; i++) {
             if (!addShipRandom(lengths[i])) {
+                System.out.println("Retry");
                 this.resetField();
                 i = -1;
             }

@@ -31,6 +31,10 @@ public abstract class Game implements Serializable {
         return this.field.addShip(new Ship(positions));
     }
 
+    public boolean addShipRandom(int[] shipLengths) {
+        return this.field.addShipRandom(shipLengths);
+    }
+
     // public abstract void shoot();
 
     public abstract void loadGame(String id) throws IOException, ClassNotFoundException;

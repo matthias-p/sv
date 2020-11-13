@@ -1,5 +1,7 @@
 package game;
 
+import enums.ProtComs;
+import game.cells.Shot;
 import network.BattleshipProtocol;
 import network.Server;
 
@@ -8,7 +10,7 @@ import java.util.concurrent.TimeUnit;
 
 public class OnlineHostGame extends Game{
     private Server server;
-    private int[] shipLengths;
+    private int[] shipLengths; // the user has to specify the amount of each ship he wants to place before the game
 
     public OnlineHostGame(int playFieldHeight, int playFieldLength, int portNumber, int[] shipLengths) {
         super(playFieldHeight, playFieldLength);
@@ -21,10 +23,13 @@ public class OnlineHostGame extends Game{
         // wait for connection, when connection is established exchange game Configuration
         if (!this.server.waitForConnection())
             return false;
+        System.out.println("Connected");
 
         this.server.writeLine(BattleshipProtocol.formatSize(this.getField().getLength(), this.getField().getHeight()));
+        System.out.println("SIZE CONFIG SENT");
         if (!this.server.readLine().equals("done"))
             return false;
+        System.out.println("size config Ok");
 
         this.server.writeLine(BattleshipProtocol.formatShips(this.shipLengths));
         if (!this.server.readLine().equals("done"))
@@ -33,12 +38,64 @@ public class OnlineHostGame extends Game{
         return true;
     }
 
-    public boolean startGame() throws InterruptedException {
+    public boolean startGame() {
         this.server.writeLine("ready");
-        while (!this.server.readLine().equals("ready")) {
-            TimeUnit.SECONDS.sleep(1);
+        return this.server.readLine().equals("ready");
+    }
+
+    @Override
+    public boolean addShip(Position[] positions) {
+        // Check if user has already added all the ships
+        if (this.field.getShipCount() == this.shipLengths.length) {
+            return false;
         }
-        return true;
+        return super.addShip(positions);
+    }
+
+    public void shot(Position position) {
+        System.out.println("schieße");
+        this.server.writeLine(BattleshipProtocol.formatShot(position.getX(), position.getY()));
+        Object[] answer = BattleshipProtocol.processInput(this.server.readLine());
+        if (answer[0] != ProtComs.ANSWER){
+            return;
+        }
+
+        if ((int) answer[1] >= 1) {
+            // User can shoot again
+            this.enemyField.getPlayfield()[position.getY()][position.getX()] = new Shot(true);
+        }
+        else {
+            // User missed -> enemy can shoot
+            this.enemyField.getPlayfield()[position.getY()][position.getX()] = new Shot();
+            this.server.writeLine("next");
+
+            while (true) {
+                String line = this.server.readLine();
+                Object[] answer2 = BattleshipProtocol.processInput(line);
+                if (line.equals("next")) {
+                    break;
+                }
+                if (answer2[0] == ProtComs.SAVE) {
+                    try {
+                        super.saveGame((String) answer2[1]);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+                if (answer2[0] != ProtComs.SHOT) {
+                    break;
+                }
+                Position enemyShot = (Position) answer2[1];
+                this.server.writeLine(BattleshipProtocol.formatAnswer(this.field.registerShot(enemyShot)));
+            }
+        }
+    }
+
+    @Override
+    public void saveGame(String id) throws IOException {
+        super.saveGame(id);
+        this.server.writeLine(BattleshipProtocol.formatSave(id));
     }
 
     @Override

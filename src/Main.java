@@ -1,8 +1,5 @@
 import enums.KiStrength;
-import game.Field;
-import game.Game;
-import game.LocalGame;
-import game.Position;
+import game.*;
 import game.cells.Ship;
 import ki.Ki;
 
@@ -12,45 +9,35 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class Main {
-    public static void main(String[] args) {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    static BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    int[] stdLengths = {5, 4, 4, 3, 3, 3, 2, 2, 2, 2};
 
-        int[] lengths = {5, 4, 4, 3, 3, 3, 2, 2, 2, 2};
-//        Game game = new Game(10, 10, lengths, KiStrength.BEGINNER);
-//        game.getField().addShipRandom(lengths);
-//
-//        while (game.getEnemyField().getShipCount() > 0) {
-//            try {
-//                System.out.println("Enter Coordinates");
-//                String in = reader.readLine();
-//                String[] splitted = in.split(" ");
-//                int hit = game.getEnemyField().registerShot(new Position(Integer.parseInt(splitted[0]), Integer.parseInt(splitted[1])));
-//                System.out.println(hit);
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//
-//            game.getKi().shoot();
-//            game.getEnemyField().printFieldConcealed();
-//        }
+    public static int mainMenu() {
+        System.out.println("Pick your poison");
+        System.out.println("1. Game vs Ki");
+        System.out.println("2. Game as Host");
+        System.out.println("3. Game as Client");
+        System.out.println("4. Options");
+        System.out.println("5. Quit");
+        try {
+            return Integer.parseInt(reader.readLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
 
-        Field myField = new Field(10, 10);
-        Position[] positions = {new Position(0, 0), new Position(0, 1), new Position(0,2)};
-        Position[] positions2 = {new Position(5, 5), new Position(6, 5), new Position(7, 5), new Position(8, 5)};
-//        myField.addShip(new Ship(positions));
-//        myField.addShip(new Ship(positions2));
-        myField.addShipRandom(lengths);
-        myField.printField();
+    public static void main(String[] args) throws IOException {
+        OnlineHostGame game = new OnlineHostGame(6, 6, 55555, new int[]{5, 4, 3});
+        game.waitForConnection();
+        game.addShipRandom(new int[]{5, 4, 3});
+        game.startGame();
 
-        Ki ki = new Ki(myField, new Field(10, 10), KiStrength.INTERMEDIATE);
-        ki.addShipsToField(lengths);
-        int counter = 0;
         while (true) {
-            ki.shoot();
-            myField.printField();
-            counter++;
-            assert counter < 100: "endlosschleife";
+            game.getEnemyField().printField();
+            System.out.println("Enter coordinates x , y");
+            String input = reader.readLine();
+            game.shot(new Position(Integer.parseInt(input.split(",")[0]), Integer.parseInt(input.split(",")[1])));
         }
     }
 }
