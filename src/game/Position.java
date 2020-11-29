@@ -1,8 +1,6 @@
 package game;
 
 public class Position {
-    // Stellt eine Position im Field dar
-
     private final int x;
     private final int y;
 

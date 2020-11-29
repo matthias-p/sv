@@ -10,25 +10,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.concurrent.TimeUnit;
 
-public class OnlineClientGame extends AbstractGame {
+public class OnlineClientGame extends Game{
     private Client client;
     private int[] shipLengths;
 
-    public int[] getShipLengths() {
-        return this.shipLengths;
+    public void setShipLengths(int[] shipLengths) {
+        this.shipLengths = shipLengths;
     }
 
     public OnlineClientGame(String hostName, int portNumber) {
-        // hier ist beim erstellen des spiels nur der hostname und die portnummer bekannt
         this.client = new Client();
         this.client.setHostname(hostName);
         this.client.setPortnumber(portNumber);
     }
 
     public boolean establishConnection() {
-        // open Connection and get game configuration
-        // Verbindung wird versucht aufzubauen. Wenn die Methode zu ende ist, sind auch die Schifflängen verfügbar
-        // Dann kann der User erst seine Schiffe plazieren.
+        //open Connection and get game configuration
         if (!this.client.openConnection())
             return false;
 
@@ -37,8 +34,8 @@ public class OnlineClientGame extends AbstractGame {
             this.client.closeConnection();
             return false;
         }
-        this.field = new FieldImpl((int) size[2], (int) size[1]);
-        this.enemyField = new FieldImpl((int) size[2], (int) size[1]);
+        this.field = new Field((int) size[2], (int) size[1]);
+        this.enemyField = new Field((int) size[2], (int) size[1]);
         this.client.writeLine("done");
 
         Object[] ships = BattleshipProtocol.processInput(this.client.readLine());
@@ -52,16 +49,9 @@ public class OnlineClientGame extends AbstractGame {
         return true;
     }
 
-    public boolean startGame() {
-        // es muss zuerst gehört werden, ob der server ready schreibt
-        // danach kann der server den ersten Schuss setzen, deswegen wird zuerst darauf gehört
-        // danach ist der Ablauf der gleiche wie beim server
+    public boolean startGame() throws InterruptedException {
         while (!this.client.readLine().equals("ready")) {
-            try {
-                TimeUnit.SECONDS.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            TimeUnit.SECONDS.sleep(1);
         }
         this.client.writeLine("ready");
 
@@ -89,9 +79,7 @@ public class OnlineClientGame extends AbstractGame {
         return true;
     }
 
-    public void shoot(Position position) {
-        // gleiche wie beim server
-        //TODO Oberklasse für Online games erstellen?
+    public void shot(Position position) {
         this.client.writeLine(BattleshipProtocol.formatShot(position.getX(), position.getY()));
         Object[] answer = BattleshipProtocol.processInput(this.client.readLine());
         if (answer[0] != ProtComs.ANSWER){
@@ -128,6 +116,15 @@ public class OnlineClientGame extends AbstractGame {
                 this.client.writeLine(BattleshipProtocol.formatAnswer(this.field.registerShot(enemyShot)));
             }
         }
+    }
+
+    @Override
+    public boolean addShip(Position[] positions) {
+        // Check if user has already added all the ships
+        if (this.field.getShipCount() == this.shipLengths.length) {
+            return false;
+        }
+        return super.addShip(positions);
     }
 
     @Override
